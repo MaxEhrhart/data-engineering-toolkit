@@ -44,62 +44,6 @@ def get_file_extension(url: str) -> str:
     return remove_s3_prefix(url).rsplit(".", maxsplit=1)[1]
 
 
-def get_database_from_url(url: str) -> str:
-    """ Retorna o banco de dados de uma tabela a partir de uma url s3 """
-    return remove_s3_prefix(url).split("/")[2]
-
-
-def get_table_name_from_url(url: str) -> str:
-    """ Retorna o nome da tabela a partir de uma url s3 """
-    return remove_s3_prefix(url).split("/")[3]
-
-
-def get_partition_path_from_url(url: str) -> str:
-    """ Retorna o caminho da particao a partir de uma url s3 """
-    return remove_s3_prefix(url).split('/', maxsplit=4)[4]
-
-
-def get_partition_fields_and_values_from_url(url: str) -> dict:
-    """ Retorna um dicionário com os campos e valores da partição """
-    partitions = remove_filename_from_url(remove_s3_prefix(url)).split('/')[4:]
-    fields_and_values = OrderedDict()
-    for partition in partitions:
-        field, value = partition.split('=')
-        fields_and_values[field] = value
-    return fields_and_values
-
-
-def get_partition_specification_from_url(url: str) -> str:
-    """
-    Retorna as especificações de partição a partir de uma url s3
-    Exemplo:
-        url = s3://bucket/databases/dba/tba/c1=1/c2=2
-        retorna: partition(c1='1', c2='2')
-    Retorno: str
-    """
-    partition_dict = get_partition_fields_and_values_from_url(url)
-    specification = ', '.join([f"{field}='{value}'" for field, value in list(partition_dict.items())])
-    return f"partition({specification})"
-
-
-def get_table_path_from_url(url: str) -> str:
-    """ Retorna o caminho da tabela de uma url s3 """
-    return "/".join(remove_s3_prefix(url).split("/", maxsplit=4)[:4])
-
-
-def get_partition_info_from_url(url: str) -> dict:
-    """ Retorna dicionario com informações da partição e tabela """
-    info = {
-        'bucket': get_bucket_name(url),
-        'database': get_database_from_url(url),
-        'table_path': get_table_path_from_url(url),
-        'table_name': get_table_name_from_url(url),
-        'partition_specification': get_partition_specification_from_url(url),
-        'partition_fields_and_values': get_partition_fields_and_values_from_url(url)
-    }
-    return info
-
-
 def list_s3_files(url):
     """ Retorna a lista de arquivos com '.' a partir de uma url s3 """
     s3_client = boto3.client('s3')
